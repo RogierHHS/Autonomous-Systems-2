@@ -78,35 +78,3 @@ def create_environment(render=False):
 import gym
 from gym import spaces
 import numpy as np
-
-class VizDoomGymWrapper(gym.Env):
-    def __init__(self, vizdoom_env):
-        super(VizDoomGymWrapper, self).__init__()
-        self.vizdoom_env = vizdoom_env
-
-        # Use the action and observation spaces from the underlying environment
-        self.action_space = self.vizdoom_env.action_space
-        self.observation_space = self.vizdoom_env.observation_space
-
-    def reset(self):
-        # Reset the underlying VizDoom environment
-        return self.vizdoom_env.reset()
-
-    def step(self, action):
-        # Step through the underlying VizDoom environment
-        obs, reward, done, info = self.vizdoom_env.step(action)
-        return obs, reward, done, info
-
-    def render(self, mode="human"):
-        # Render the underlying VizDoom environment
-        self.vizdoom_env.render(mode)
-
-    def close(self):
-        # Close the underlying VizDoom environment
-        self.vizdoom_env.close()
-
-    def seed(self, seed=None):
-        # Set the random seed for the environment
-        if hasattr(self.vizdoom_env, "seed"):
-            self.vizdoom_env.seed(seed)
-        np.random.seed(seed)
