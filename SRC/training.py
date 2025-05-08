@@ -6,7 +6,8 @@ def train_q_learning(env, episodes=100,
                      epsilon=1.0,
                      epsilon_decay=0.995,
                      epsilon_min=0.01,
-                     frame_skip=1):
+                     frame_skip=1,
+                     policy="greedy"):  
     
     agent = QLearningAgent(
         num_actions=env.num_actions,
@@ -14,7 +15,8 @@ def train_q_learning(env, episodes=100,
         gamma=gamma,
         epsilon=epsilon,
         epsilon_decay=epsilon_decay,
-        epsilon_min=epsilon_min
+        epsilon_min=epsilon_min,
+        policy=policy 
     )
 
     reward_history = []
@@ -28,7 +30,6 @@ def train_q_learning(env, episodes=100,
         while not done:
             action = agent.choose_action(state_key)
 
-            # Actie uitvoeren met frame skipping
             cumulative_reward = 0
             for _ in range(frame_skip):
                 next_state, reward, done, _ = env.step(action)
@@ -45,4 +46,4 @@ def train_q_learning(env, episodes=100,
         reward_history.append(total_reward)
         print(f"Episode {ep+1} - Reward: {total_reward:.2f} - Epsilon: {agent.epsilon:.3f}")
 
-    return reward_history
+    return agent, reward_history
