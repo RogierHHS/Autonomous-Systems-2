@@ -6,9 +6,10 @@ import gym
 from gym import spaces
 
 class VizDoomEnvironment:
-    def __init__(self, render=False, scenario="basic.cfg", actions=None):
+    def __init__(self, render=False, scenario="basic.cfg", actions=None, use_grayscale=True):
         self.render_mode = render
         self.scenario = scenario
+        self.use_grayscale = use_grayscale  # Add grayscale option
         self.game = DoomGame()
         self.game.load_config(f"ViZDoom/scenarios/{self.scenario}")
         self.game.set_window_visible(self.render_mode)
@@ -16,24 +17,24 @@ class VizDoomEnvironment:
 
         # Allow custom actions or use default actions
         self.actions = actions if actions is not None else [
-    [1, 0, 0, 0, 0, 0, 0],  # Naar links
-    [0, 1, 0, 0, 0, 0, 0],  # Naar rechts
-    [0, 0, 1, 0, 0, 0, 0],  # Kijk naar links
-    [0, 0, 0, 1, 0, 0, 0],  # Kijk naar rechts
-    [0, 0, 0, 0, 1, 0, 0],  # Alleen schieten
-    [0, 0, 0, 0, 0, 1, 0],  # Vooruit
-    [0, 0, 0, 0, 0, 0, 1],  # Achteruit
-]
+            [1, 0, 0, 0, 0, 0, 0],  # Naar links
+            [0, 1, 0, 0, 0, 0, 0],  # Naar rechts
+            [0, 0, 1, 0, 0, 0, 0],  # Kijk naar links
+            [0, 0, 0, 1, 0, 0, 0],  # Kijk naar rechts
+            [0, 0, 0, 0, 1, 0, 0],  # Alleen schieten
+            [0, 0, 0, 0, 0, 1, 0],  # Vooruit
+            [0, 0, 0, 0, 0, 0, 1],  # Achteruit
+        ]
         self.num_actions = len(self.actions)  # Add num_actions attribute
         self.action_space = spaces.Discrete(self.num_actions)
 
         # Define observation space
         screen_height, screen_width = 84, 84
+        channels = 1 if self.use_grayscale else 3
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(screen_height, screen_width, 1), dtype=np.uint8
+            low=0, high=255, shape=(screen_height, screen_width, channels), dtype=np.uint8
         )
 
-    # Other methods remain unchanged
     def reset(self):
         self.game.new_episode()
         state = self.game.get_state().screen_buffer
@@ -62,8 +63,14 @@ class VizDoomEnvironment:
     def _preprocess(self, state):
         if state is None:
             # Return a blank frame if the state is None
-            return np.zeros((84, 84, 1), dtype=np.uint8)
-        # Convert the state to grayscale and resize to 84x84
-        gray_state = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
-        resized_state = cv2.resize(gray_state, (84, 84))
-        return np.expand_dims(resized_state, axis=-1)
+            shape = (84, 84, 1) if self.use_grayscale else (84, 84, 3)
+            return np.zeros(shape, dtype=np.uint8)
+        if self.use_grayscale:
+            # Convert the state to grayscale and resize to 84x84
+            gray_state = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
+            resized_state = cv2.resize(gray_state, (84, 84))
+            return np.expand_dims(resized_state, axis=-1)
+        else:
+            # Resize the state to 84x84 without converting to grayscale
+            resized_state = cv2.resize(state, (84, 84))
+            return resized_state

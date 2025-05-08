@@ -41,7 +41,6 @@ class DQNetwork(tf.keras.Model):
         output = self.output_layer(x)
         return output
 
-# Loss computation and optimizer should be used externally via tf.GradientTape
 
 class Memory:
     def __init__(self, max_size):

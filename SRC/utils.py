@@ -79,18 +79,6 @@ import gym
 from gym import spaces
 import numpy as np
 
-import gym
-from gym import spaces
-import numpy as np
-
-import gym
-from gym import spaces
-import numpy as np
-
-import gym
-from gym import spaces
-import numpy as np
-
 class VizDoomGymWrapper(gym.Env):
     def __init__(self, vizdoom_env):
         super(VizDoomGymWrapper, self).__init__()
