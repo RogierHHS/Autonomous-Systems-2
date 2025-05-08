@@ -38,18 +38,13 @@ def preprocess_frame(frame):
     return preprocessed_frame.astype(np.float32) / 255.0  # Normalize to [0, 1] range
 
 def stack_frames(stacked_frames, state, is_new_episode):
-    # Debug: Check the raw state
-    if np.isnan(state).any():
-        print("NaN detected in raw state!")
+
+    # Remove singleton dimension if it exists
+    state = np.squeeze(state, axis=-1) if state.ndim == 3 and state.shape[-1] == 1 else state
+
 
     # Preprocess frame
     frame = preprocess_frame(state)
-
-    # Debug: Check the preprocessed frame
-    if np.isnan(frame).any():
-        print("NaN detected in preprocessed frame!")
-
-    frame = np.nan_to_num(frame, nan=0.0)
 
     if is_new_episode:
         stacked_frames = deque([np.zeros((84, 84), dtype=np.float32) for i in range(4)], maxlen=4)
@@ -79,3 +74,51 @@ def create_environment(render=False):
     achteruit = [0, 0, 0, 0, 0, 0, 1]
     actions = [links, rechts, links_kijk, rechts_kijk, schieten, vooruit, achteruit]
     return game, actions
+
+import gym
+from gym import spaces
+import numpy as np
+
+import gym
+from gym import spaces
+import numpy as np
+
+import gym
+from gym import spaces
+import numpy as np
+
+import gym
+from gym import spaces
+import numpy as np
+
+class VizDoomGymWrapper(gym.Env):
+    def __init__(self, vizdoom_env):
+        super(VizDoomGymWrapper, self).__init__()
+        self.vizdoom_env = vizdoom_env
+
+        # Use the action and observation spaces from the underlying environment
+        self.action_space = self.vizdoom_env.action_space
+        self.observation_space = self.vizdoom_env.observation_space
+
+    def reset(self):
+        # Reset the underlying VizDoom environment
+        return self.vizdoom_env.reset()
+
+    def step(self, action):
+        # Step through the underlying VizDoom environment
+        obs, reward, done, info = self.vizdoom_env.step(action)
+        return obs, reward, done, info
+
+    def render(self, mode="human"):
+        # Render the underlying VizDoom environment
+        self.vizdoom_env.render(mode)
+
+    def close(self):
+        # Close the underlying VizDoom environment
+        self.vizdoom_env.close()
+
+    def seed(self, seed=None):
+        # Set the random seed for the environment
+        if hasattr(self.vizdoom_env, "seed"):
+            self.vizdoom_env.seed(seed)
+        np.random.seed(seed)
