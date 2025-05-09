@@ -5,7 +5,7 @@ import numpy as np
 import gym
 from gym import spaces
 
-class VizDoomEnvironment:
+class DeepVizDoomEnvironment:
     def __init__(self, render=False, scenario="basic.cfg", actions=None, use_grayscale=True):
         self.render_mode = render
         self.scenario = scenario
