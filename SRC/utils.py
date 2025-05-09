@@ -6,6 +6,17 @@ from skimage import transform
 from collections import deque
 ### 1. Verzamelen van frames met bijbehorende acties ###
 def collect_frames_with_actions(env, max_steps=60):
+    """
+    Laat een agent willekeurige acties uitvoeren in de omgeving en 
+    verzamelt hierbij de bijbehorende observaties, beloningen en acties.
+
+    Parameters:
+    env: De omgeving waarin de acties worden uitgevoerd.
+    max_steps (int): Maximaal aantal stappen dat wordt uitgevoerd.
+
+    Returns:
+    list: Een lijst van tuples (state, reward, step, action).
+    """
     frames = []
     state, _ = env.reset() 
     done = False
@@ -13,14 +24,22 @@ def collect_frames_with_actions(env, max_steps=60):
 
     while not done and steps < max_steps:
         action = random.randint(0, env.num_actions - 1)
-        state, reward, done, info, _ = env.step(action)  
+        state, reward, done, info, _ = env.step(action)
         frames.append((state, reward, steps, action))
         steps += 1
 
     return frames
 
+
 ### 2. Visualiseren van frames met specifieke actie ###
 def show_shoot_frames(frames, target_action=2):
+    """
+    Laat alle frames zien waarbij een specifieke actie (zoals schieten) werd uitgevoerd.
+
+    Parameters:
+    frames (list): Een lijst van (state, reward, step, action) tuples.
+    target_action (int): De actie waarvoor de frames getoond worden.
+    """
     actie_labels = ["LEFT", "RIGHT", "SHOOT"]
     
     for state, reward, step, action in frames:
@@ -30,15 +49,24 @@ def show_shoot_frames(frames, target_action=2):
             if state.ndim == 3 and state.shape[-1] == 1:
                 plt.imshow(state.squeeze(), cmap='gray')
             elif state.ndim == 3 and state.shape[0] == 3:
-                plt.imshow(np.moveaxis(state, 0, -1)) 
+                plt.imshow(np.moveaxis(state, 0, -1))
             else:
-                plt.imshow(state)  # fallback
+                plt.imshow(state)  # fallback voor onverwachte vorm
+
             plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
             plt.axis('off')
             plt.show()
 
+
 ### 3. Q-table visualisatie ###
 def visualize_q_table(agent, sample_state=None):
+    """
+    Visualiseert statistieken over de Q-table van een getrainde agent.
+
+    Parameters:
+    agent: De getrainde QLearningAgent.
+    sample_state (np.ndarray | None): Optionele state waarvoor de Q-waarden worden geplot.
+    """
     print(f"Aantal geleerde states: {len(agent.q_table)}")
 
     # Histogram van alle Q-waarden
@@ -76,7 +104,7 @@ def visualize_q_table(agent, sample_state=None):
     else:
         print("Geen voorbeeldstate meegegeven → sla individuele Q-plot over.\n")
 
-    # Top 5 meest overtuigende beslissingen
+    # Top 5 meest overtuigende beslissingen op basis van Q-waardeverschil
     print("Top 5 meest overtuigende Q-beslissingen (grootste verschil tussen beste actie en gemiddeld):")
     confidences = []
     for key, q_vals in agent.q_table.items():
@@ -89,13 +117,3 @@ def visualize_q_table(agent, sample_state=None):
         print(f"  Q-waarden: {np.round(q_vals, 2)}")
         print(f"  Beste actie: {np.argmax(q_vals)} met vertrouwen {score:.2f}\n")
 
-def show_shoot_frames(frames, target_action=2):
-    actie_labels = ["LEFT", "RIGHT", "SHOOT"]
-    
-    for state, reward, step, action in frames:
-        if action == target_action:
-            plt.figure(figsize=(5, 3))
-            plt.imshow(state.squeeze(), cmap='gray')
-            plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
-            plt.axis('off')
-            plt.show()
