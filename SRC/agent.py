@@ -15,24 +15,26 @@ class QLearningAgent:
         self.policy = policy.lower()
         self.q_table = defaultdict(lambda: np.zeros(num_actions))
 
-    def get_state_key(self, state):
+    def get_state_key(self, state, enemy_position=None):
+        """
+        Zet de state om naar een vereenvoudigde, hashbare key + optioneel enemy_position ('left', 'center', 'right', None).
+        """
         reduced = cv2.resize(state.squeeze(), (20, 10), interpolation=cv2.INTER_AREA)
         binned = (reduced // 64).astype(int)
-        return tuple(binned.flatten())
+        state_flat = tuple(binned.flatten())
+        return (state_flat, enemy_position) if enemy_position is not None else state_flat
 
     def choose_action(self, state_key):
         q_values = self.q_table[state_key]
 
         if self.policy == "greedy":
-            # Îµ-greedy policy
             if random.random() < self.epsilon:
                 return random.randint(0, self.num_actions - 1)
             return int(np.argmax(q_values))
 
         elif self.policy == "softmax":
-            # Softmax policy (Boltzmann exploration)
-            tau = max(self.epsilon, 0.1)  # temperatuur
-            q_shifted = q_values - np.max(q_values)  # voor stabiliteit
+            tau = max(self.epsilon, 0.1)
+            q_shifted = q_values - np.max(q_values)  # stabiliteit
             exp_q = np.exp(q_shifted / tau)
             probs = exp_q / np.sum(exp_q)
             return np.random.choice(len(q_values), p=probs)

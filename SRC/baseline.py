@@ -7,12 +7,12 @@ def random_baseline(env, episodes=5):
 
     for ep in range(episodes):
         score = 0
-        state = env.reset()
+        state, _ = env.reset()  # enemy_visible wordt genegeerd
         done = False
 
         while not done:
             action = random.randint(0, env.num_actions - 1)
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)  # negeer enemy_visible
             score += reward
 
         total_scores.append(score)

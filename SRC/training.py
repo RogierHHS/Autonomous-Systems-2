@@ -23,8 +23,15 @@ def train_q_learning(env, episodes=100,
 
     for ep in range(episodes):
         total_reward = 0
-        state = env.reset()
-        state_key = agent.get_state_key(state)
+
+        # Reset met of zonder enemy_position ("left", "center", "right")
+        reset_result = env.reset()
+        if isinstance(reset_result, tuple):
+            state, enemy_position = reset_result
+        else:
+            state, enemy_position = reset_result, None
+
+        state_key = agent.get_state_key(state, enemy_position)
         done = False
 
         while not done:
@@ -32,12 +39,18 @@ def train_q_learning(env, episodes=100,
 
             cumulative_reward = 0
             for _ in range(frame_skip):
-                next_state, reward, done, _ = env.step(action)
+                step_result = env.step(action)
+                if len(step_result) == 5:
+                    next_state, reward, done, _, enemy_position = step_result
+                else:
+                    next_state, reward, done, _ = step_result
+                    enemy_position = None
+
                 cumulative_reward += reward
                 if done:
                     break
 
-            next_state_key = agent.get_state_key(next_state)
+            next_state_key = agent.get_state_key(next_state, enemy_position)
             agent.learn(state_key, action, cumulative_reward, next_state_key, done)
 
             state_key = next_state_key

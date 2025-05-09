@@ -1,41 +1,47 @@
 import random
 import matplotlib.pyplot as plt
 import numpy as np
-
-### Functie om één episode uit te voeren en frames op te slaan waar de actie is uitgevoerd ###
+from vizdoom import DoomGame
+from skimage import transform
+from collections import deque
+### 1. Verzamelen van frames met bijbehorende acties ###
 def collect_frames_with_actions(env, max_steps=60):
     frames = []
-    state = env.reset()
+    state, _ = env.reset()  # ✅ aangepaste unpacking
     done = False
     steps = 0
 
     while not done and steps < max_steps:
         action = random.randint(0, env.num_actions - 1)
-        state, reward, done, info = env.step(action)
+        state, reward, done, info, _ = env.step(action)  # ✅ aangepaste unpacking
         frames.append((state, reward, steps, action))
         steps += 1
 
     return frames
 
-#### Functie om de frames te visualiseren waar de actie is uitgevoerd ###
-
+### 2. Visualiseren van frames met specifieke actie ###
 def show_shoot_frames(frames, target_action=2):
     actie_labels = ["LEFT", "RIGHT", "SHOOT"]
     
     for state, reward, step, action in frames:
         if action == target_action:
             plt.figure(figsize=(5, 3))
-            plt.imshow(state.squeeze(), cmap='gray')
+            # ✅ Check shape voor grayscale/kleur
+            if state.ndim == 3 and state.shape[-1] == 1:
+                plt.imshow(state.squeeze(), cmap='gray')
+            elif state.ndim == 3 and state.shape[0] == 3:
+                plt.imshow(np.moveaxis(state, 0, -1))  # channels-first → channels-last
+            else:
+                plt.imshow(state)  # fallback
             plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
             plt.axis('off')
             plt.show()
 
-### visualisatie van Q-waarden ###
-
+### 3. Q-table visualisatie ###
 def visualize_q_table(agent, sample_state=None):
     print(f"Aantal geleerde states: {len(agent.q_table)}")
 
-    # 1. Histogram van alle Q-waarden
+    # Histogram van alle Q-waarden
     all_q_values = [q for q_vals in agent.q_table.values() for q in q_vals]
     plt.figure(figsize=(6, 4))
     plt.hist(all_q_values, bins=30, color='steelblue')
@@ -44,7 +50,7 @@ def visualize_q_table(agent, sample_state=None):
     plt.title("Verdeling van Q-waarden na training")
     plt.show()
 
-    # 2. Verdeling van gekozen beste acties
+    # Verdeling van gekozen beste acties
     action_counts = np.zeros(agent.num_actions)
     for q_vals in agent.q_table.values():
         best_action = np.argmax(q_vals)
@@ -57,7 +63,7 @@ def visualize_q_table(agent, sample_state=None):
     plt.title("Verdeling van beste acties per state")
     plt.show()
 
-    # 3. Q-waarden voor een sample state (als meegegeven)
+    # Q-waarden voor voorbeeldstate
     if sample_state is not None:
         sample_key = agent.get_state_key(sample_state)
         q_vals = agent.q_table[sample_key]
@@ -70,7 +76,7 @@ def visualize_q_table(agent, sample_state=None):
     else:
         print("Geen voorbeeldstate meegegeven → sla individuele Q-plot over.\n")
 
-    # 4. Top 5 meest ‘zekere’ beslissingen
+    # Top 5 meest overtuigende beslissingen
     print("Top 5 meest overtuigende Q-beslissingen (grootste verschil tussen beste actie en gemiddeld):")
     confidences = []
     for key, q_vals in agent.q_table.items():
@@ -82,3 +88,14 @@ def visualize_q_table(agent, sample_state=None):
         print(f"Top {i+1}:")
         print(f"  Q-waarden: {np.round(q_vals, 2)}")
         print(f"  Beste actie: {np.argmax(q_vals)} met vertrouwen {score:.2f}\n")
+
+def show_shoot_frames(frames, target_action=2):
+    actie_labels = ["LEFT", "RIGHT", "SHOOT"]
+    
+    for state, reward, step, action in frames:
+        if action == target_action:
+            plt.figure(figsize=(5, 3))
+            plt.imshow(state.squeeze(), cmap='gray')
+            plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
+            plt.axis('off')
+            plt.show()
