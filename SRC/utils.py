@@ -1,7 +1,9 @@
 import random
 import matplotlib.pyplot as plt
 import numpy as np
-
+from vizdoom import DoomGame
+from skimage import transform
+from collections import deque
 ### 1. Verzamelen van frames met bijbehorende acties ###
 def collect_frames_with_actions(env, max_steps=60):
     frames = []
@@ -86,3 +88,57 @@ def visualize_q_table(agent, sample_state=None):
         print(f"Top {i+1}:")
         print(f"  Q-waarden: {np.round(q_vals, 2)}")
         print(f"  Beste actie: {np.argmax(q_vals)} met vertrouwen {score:.2f}\n")
+
+def show_shoot_frames(frames, target_action=2):
+    actie_labels = ["LEFT", "RIGHT", "SHOOT"]
+    
+    for state, reward, step, action in frames:
+        if action == target_action:
+            plt.figure(figsize=(5, 3))
+            plt.imshow(state.squeeze(), cmap='gray')
+            plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
+            plt.axis('off')
+            plt.show()
+
+def preprocess_frame(frame):
+    # Resize the frame to 84x84 and convert to grayscale
+    preprocessed_frame = transform.resize(frame, (84, 84), mode='constant')
+    return preprocessed_frame.astype(np.float32) / 255.0  # Normalize to [0, 1] range
+
+def stack_frames(stacked_frames, state, is_new_episode):
+
+    # Remove singleton dimension if it exists
+    state = np.squeeze(state, axis=-1) if state.ndim == 3 and state.shape[-1] == 1 else state
+
+
+    # Preprocess frame
+    frame = preprocess_frame(state)
+
+    if is_new_episode:
+        stacked_frames = deque([np.zeros((84, 84), dtype=np.float32) for i in range(4)], maxlen=4)
+        for _ in range(4):  # Append the same frame 4 times
+            stacked_frames.append(frame)
+
+        stacked_state = np.stack(stacked_frames, axis=2)
+    else:
+        stacked_frames.append(frame)
+        stacked_state = np.stack(stacked_frames, axis=2)
+
+    return stacked_state, stacked_frames
+def create_environment(render=False):
+    game = DoomGame()
+    game.load_config(f"ViZDoom/scenarios/basic.cfg")
+
+    game.set_doom_scenario_path(f"ViZDoom/scenarios/basic.wad")
+
+    game.init()
+
+    links = [1, 0, 0, 0, 0, 0, 0]
+    rechts = [0, 1, 0, 0, 0, 0, 0]
+    links_kijk = [0, 0, 1, 0, 0, 0, 0]
+    rechts_kijk = [0, 0, 0, 1, 0, 0, 0]
+    schieten = [0, 0, 0, 0, 1, 0, 0]
+    vooruit = [0, 0, 0, 0, 0, 1, 0]
+    achteruit = [0, 0, 0, 0, 0, 0, 1]
+    actions = [links, rechts, links_kijk, rechts_kijk, schieten, vooruit, achteruit]
+    return game, actions
