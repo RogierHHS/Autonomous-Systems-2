@@ -1,4 +1,4 @@
-from environment import VizDoomEnvironment
+from deep_q_environment import VizDoomEnvironment
 import random
 
 def random_baseline(env, episodes=5):

@@ -9,13 +9,12 @@ class VizDoomEnvironment:
     def __init__(self, render=False, scenario="basic.cfg", actions=None, use_grayscale=True):
         self.render_mode = render
         self.scenario = scenario
-        self.use_grayscale = use_grayscale  # Add grayscale option
+        self.use_grayscale = use_grayscale  
         self.game = DoomGame()
         self.game.load_config(f"ViZDoom/scenarios/{self.scenario}")
         self.game.set_window_visible(self.render_mode)
         self.game.init()
 
-        # Allow custom actions or use default actions
         self.actions = actions if actions is not None else [
             [1, 0, 0, 0, 0, 0, 0],  # Naar links
             [0, 1, 0, 0, 0, 0, 0],  # Naar rechts
@@ -25,10 +24,10 @@ class VizDoomEnvironment:
             [0, 0, 0, 0, 0, 1, 0],  # Vooruit
             [0, 0, 0, 0, 0, 0, 1],  # Achteruit
         ]
-        self.num_actions = len(self.actions)  # Add num_actions attribute
+        self.num_actions = len(self.actions) 
         self.action_space = spaces.Discrete(self.num_actions)
 
-        # Define observation space
+        # defineer de space
         screen_height, screen_width = 84, 84
         channels = 1 if self.use_grayscale else 3
         self.observation_space = spaces.Box(
@@ -39,7 +38,6 @@ class VizDoomEnvironment:
         self.game.new_episode()
         state = self.game.get_state().screen_buffer
         if state is not None:
-            # Transpose the state to (height, width, channels)
             state = np.transpose(state, (1, 2, 0))
         return self._preprocess(state)
 
@@ -50,9 +48,6 @@ class VizDoomEnvironment:
         if state is not None:
             state = np.transpose(state, (1, 2, 0))
         return self._preprocess(state), reward, done, {}
-
-    def render(self, mode="human"):
-        pass  # Optional: Implement rendering logic if needed
 
     def close(self):
         self.game.close()
