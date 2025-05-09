@@ -8,6 +8,23 @@ def train_q_learning(env, episodes=100,
                      epsilon_min=0.01,
                      frame_skip=1,
                      policy="greedy"):  
+    """
+    Traint een Q-learning agent in de opgegeven omgeving.
+
+    Parameters:
+    env: De omgeving waarin de agent leert.
+    episodes (int): Aantal episodes om te trainen.
+    learning_rate (float): Hoe snel de Q-waarden worden aangepast.
+    gamma (float): Discount factor voor toekomstige beloningen.
+    epsilon (float): Startwaarde voor epsilon-greedy exploratie.
+    epsilon_decay (float): Hoe snel epsilon afneemt na elke episode.
+    epsilon_min (float): Minimale waarde van epsilon.
+    frame_skip (int): Aantal stappen dat dezelfde actie wordt herhaald.
+    policy (str): Actiekeuzebeleid, bijv. 'greedy'.
+
+    Returns:
+    tuple: (getrainde agent, lijst met rewards per episode)
+    """
     
     agent = QLearningAgent(
         num_actions=env.num_actions,
@@ -24,7 +41,7 @@ def train_q_learning(env, episodes=100,
     for ep in range(episodes):
         total_reward = 0
 
-        # Reset met of zonder enemy_position ("left", "center", "right")
+        # Ondersteunt zowel reset() → state als reset() → (state, enemy_position)
         reset_result = env.reset()
         if isinstance(reset_result, tuple):
             state, enemy_position = reset_result
@@ -60,3 +77,4 @@ def train_q_learning(env, episodes=100,
         print(f"Episode {ep+1} - Reward: {total_reward:.2f} - Epsilon: {agent.epsilon:.3f}")
 
     return agent, reward_history
+
