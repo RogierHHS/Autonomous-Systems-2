@@ -20,7 +20,7 @@ def random_baseline(env, episodes=5):
 
     avg_score = sum(total_scores) / len(total_scores)
     print(f"\nGemiddelde reward over {episodes} episodes: {avg_score:.2f}")
-    return total_scores
+    return avg_score, total_scores
 
 if __name__ == "__main__":
     env = VizDoomEnvironment(render=True)
