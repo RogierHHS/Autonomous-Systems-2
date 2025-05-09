@@ -7,13 +7,13 @@ from collections import deque
 ### 1. Verzamelen van frames met bijbehorende acties ###
 def collect_frames_with_actions(env, max_steps=60):
     frames = []
-    state, _ = env.reset()  # ✅ aangepaste unpacking
+    state, _ = env.reset() 
     done = False
     steps = 0
 
     while not done and steps < max_steps:
         action = random.randint(0, env.num_actions - 1)
-        state, reward, done, info, _ = env.step(action)  # ✅ aangepaste unpacking
+        state, reward, done, info, _ = env.step(action)  
         frames.append((state, reward, steps, action))
         steps += 1
 
@@ -26,11 +26,11 @@ def show_shoot_frames(frames, target_action=2):
     for state, reward, step, action in frames:
         if action == target_action:
             plt.figure(figsize=(5, 3))
-            # ✅ Check shape voor grayscale/kleur
+            
             if state.ndim == 3 and state.shape[-1] == 1:
                 plt.imshow(state.squeeze(), cmap='gray')
             elif state.ndim == 3 and state.shape[0] == 3:
-                plt.imshow(np.moveaxis(state, 0, -1))  # channels-first → channels-last
+                plt.imshow(np.moveaxis(state, 0, -1)) 
             else:
                 plt.imshow(state)  # fallback
             plt.title(f"Stap {step} - Reward: {reward} - Actie: {actie_labels[action]}")
